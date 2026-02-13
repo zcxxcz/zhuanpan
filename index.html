@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自定义比例转盘生成器</title>
+  <meta name="description" content="创建自定义权重转盘，导出为独立 HTML 文件，离线可用。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ═══ 顶部导航 ═══ -->
+  <header class="app-header">
+    <div class="app-logo">🎯 转盘生成器 <span>Spinner Builder</span></div>
+  </header>
+
+  <!-- ═══ 编辑器视图 ═══ -->
+  <div id="editor-view" class="view active">
+
+    <!-- 左侧：表单区 -->
+    <div class="editor-form">
+
+      <!-- 标题 -->
+      <div class="card">
+        <div class="card-title">转盘标题</div>
+        <input type="text" id="title-input" placeholder="例如：今天吃什么？" value="今天吃什么？">
+      </div>
+
+      <!-- 快捷模板 -->
+      <div class="card">
+        <div class="card-title">快捷模板</div>
+        <div class="templates-grid" id="templates-grid">
+          <!-- JS 动态生成 -->
+        </div>
+      </div>
+
+      <!-- 选项列表 -->
+      <div class="card">
+        <div class="card-title">选项 &amp; 权重</div>
+        <div class="options-list" id="options-list">
+          <!-- JS 动态生成 -->
+        </div>
+        <button class="btn btn-secondary btn-add" id="btn-add" style="margin-top:12px">＋ 添加选项</button>
+      </div>
+
+      <!-- 主题选择 -->
+      <div class="card">
+        <div class="card-title">视觉主题</div>
+        <div class="themes-grid">
+          <div class="theme-card active" data-theme="fresh">
+            <div class="theme-dots">
+              <span style="background:#2ecc71"></span>
+              <span style="background:#1abc9c"></span>
+              <span style="background:#3498db"></span>
+            </div>
+            <div class="theme-name">🌿 清新自然</div>
+          </div>
+          <div class="theme-card" data-theme="neon">
+            <div class="theme-dots">
+              <span style="background:#ff2e9f"></span>
+              <span style="background:#6c5ce7"></span>
+              <span style="background:#00d2d3"></span>
+            </div>
+            <div class="theme-name">🌙 深夜霓虹</div>
+          </div>
+          <div class="theme-card" data-theme="classic">
+            <div class="theme-dots">
+              <span style="background:#c0392b"></span>
+              <span style="background:#d4a017"></span>
+              <span style="background:#e74c3c"></span>
+            </div>
+            <div class="theme-name">🏮 经典红金</div>
+          </div>
+          <div class="theme-card" data-theme="minimal">
+            <div class="theme-dots">
+              <span style="background:#1a1a1a"></span>
+              <span style="background:#555"></span>
+              <span style="background:#aaa"></span>
+            </div>
+            <div class="theme-name">◻️ 极简黑白</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：实时预览 -->
+    <div class="editor-preview">
+      <div class="card" style="width:100%;display:flex;flex-direction:column;align-items:center">
+        <div class="card-title" style="width:100%">实时预览</div>
+        <div class="preview-canvas-wrap">
+          <canvas id="canvas-small"></canvas>
+        </div>
+        <button class="btn btn-primary" id="btn-preview" style="margin-top:16px;width:100%;justify-content:center;font-size:1rem">
+          🚀 全屏预览 &amp; 试玩
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 预览视图 (全屏) ═══ -->
+  <div id="preview-view" class="view">
+    <div class="preview-top-bar">
+      <button class="btn btn-secondary" id="btn-back-edit">← 返回编辑</button>
+      <button class="btn btn-primary" id="btn-download">💾 下载 HTML</button>
+    </div>
+    <div class="preview-spinner-wrap">
+      <canvas id="canvas-big"></canvas>
+    </div>
+    <button class="btn-spin" id="btn-spin">SPIN</button>
+  </div>
+
+  <!-- ═══ 结果弹窗 ═══ -->
+  <div class="result-overlay hidden" id="result-overlay">
+    <div class="result-card">
+      <div class="result-label">🎉 恭喜你抽中了</div>
+      <div class="result-value" id="result-text"></div>
+      <button class="btn btn-primary" id="btn-result-close">再来一次</button>
+    </div>
+  </div>
+
+  <!-- ═══ Toast ═══ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══ Scripts ═══ -->
+  <script src="templates.js"></script>
+  <script src="spinner.js"></script>
+  <script src="exporter.js"></script>
+  <script>
+    // 动态生成模板按钮
+    const tplGrid = document.getElementById('templates-grid');
+    TEMPLATES.forEach((tpl, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-template';
+      btn.textContent = tpl.name;
+      btn.dataset.tplIndex = i;
+      tplGrid.appendChild(btn);
+    });
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
