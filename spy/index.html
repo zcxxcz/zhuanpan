@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f2937">
+<title>谁是卧底 · 传阅手机版</title>
+<meta name="description" content="无需联网的谁是卧底游戏，适合家庭聚会传阅一部手机即可游玩。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#1e293b; --card:#1e293b; --card2:#273449;
+    --txt:#f1f5f9; --muted:#94a3b8; --line:#334155;
+    --brand:#6366f1; --brand2:#8b5cf6; --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+    --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#0f172a 0%,#1e1b4b 55%,#312e81 100%);
+    color:var(--txt); min-height:100%;
+    -webkit-font-smoothing:antialiased; overscroll-behavior:none;
+  }
+  .app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+  header.top{display:flex;align-items:center;justify-content:center;gap:8px;padding:18px 0 10px;font-weight:800;font-size:1.25rem;letter-spacing:.5px}
+  header.top .sub{font-size:.7rem;font-weight:600;color:var(--muted);background:rgba(255,255,255,.06);padding:3px 8px;border-radius:999px}
+  .screen{display:none;flex:1;flex-direction:column;animation:fade .25s ease}
+  .screen.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 4px;font-size:1rem}
+  .card .hint{color:var(--muted);font-size:.8rem;margin:0 0 14px;line-height:1.5}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0}
+  .row .label{font-weight:600}
+  .row .desc{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+  /* stepper */
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:1.4rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .stepper button:active{transform:scale(.92)}
+  .stepper .val{min-width:42px;text-align:center;font-size:1.4rem;font-weight:800;font-variant-numeric:tabular-nums}
+
+  /* toggle */
+  .switch{position:relative;width:52px;height:30px;flex:none}
+  .switch input{display:none}
+  .switch .track{position:absolute;inset:0;background:var(--card2);border:1px solid var(--line);border-radius:999px;transition:.2s}
+  .switch .dot{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#64748b;transition:.2s}
+  .switch input:checked + .track{background:var(--brand);border-color:var(--brand)}
+  .switch input:checked + .track + .dot{transform:translateX(22px);background:#fff}
+
+  /* segmented */
+  .seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 6px;border-radius:9px;font-weight:600;font-size:.85rem;cursor:pointer}
+  .seg button.on{background:var(--brand);color:#fff}
+
+  textarea,input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px;font-size:.95rem;font-family:inherit;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--brand)}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;padding:16px;font-size:1.05rem;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 8px 20px rgba(99,102,241,.4)}
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:var(--card2);color:var(--txt);box-shadow:none;border:1px solid var(--line)}
+  .btn.ghost{background:transparent;color:var(--muted);box-shadow:none;font-weight:600;font-size:.9rem;padding:12px}
+  .btn.danger{background:linear-gradient(135deg,#ef4444,#f97316)}
+  .btn-bar{margin-top:auto;padding:10px 0 6px;display:flex;flex-direction:column;gap:10px}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;background:rgba(255,255,255,.07);padding:4px 10px;border-radius:999px;color:var(--muted)}
+
+  /* reveal */
+  .reveal-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px}
+  .pass-num{font-size:.85rem;color:var(--muted)}
+  .pass-name{font-size:1.9rem;font-weight:800;margin:2px 0}
+  .reveal-card{width:100%;max-width:360px;aspect-ratio:3/4;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;user-select:none;border:1px solid var(--line);position:relative;overflow:hidden}
+  .reveal-card.cover{background:linear-gradient(160deg,#312e81,#1e1b4b);box-shadow:var(--shadow)}
+  .reveal-card.shown{background:linear-gradient(160deg,#0b3d2e,#064e3b)}
+  .reveal-card .big{font-size:3.4rem}
+  .reveal-card .word{font-size:2.6rem;font-weight:900;letter-spacing:2px}
+  .reveal-card .tap{font-size:.95rem;color:rgba(255,255,255,.75)}
+  .reveal-card .role-tag{font-size:.8rem;padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:700}
+  .hold-note{font-size:.78rem;color:var(--warn);min-height:18px}
+
+  /* list */
+  .plist{list-style:none;margin:0;padding:0}
+  .plist li{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;background:var(--card2)}
+  .plist li.out{opacity:.45;text-decoration:line-through}
+  .plist .idx{width:30px;height:30px;flex:none;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem}
+  .plist .nm{flex:1;font-weight:600}
+  .plist .vote{border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:10px;padding:8px 12px;font-size:.8rem;font-weight:600;cursor:pointer}
+  .plist li.out .vote{background:var(--bad);border-color:var(--bad);color:#fff}
+
+  .order-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .order-grid .chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px}
+  .order-grid .chip b{color:var(--brand2)}
+
+  /* result */
+  .result-spy{text-align:center;padding:8px 0}
+  .result-spy .crown{font-size:3rem}
+  .words-box{display:flex;gap:10px;margin-top:6px}
+  .words-box .wb{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+  .words-box .wb .t{font-size:.72rem;color:var(--muted)}
+  .words-box .wb .w{font-size:1.3rem;font-weight:800;margin-top:4px}
+  .words-box .wb.spy{border-color:var(--bad)}
+  .words-box .wb.spy .w{color:#fca5a5}
+
+  .footer-note{text-align:center;color:var(--muted);font-size:.72rem;padding:14px 0}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#0b1220;border:1px solid var(--line);color:#fff;padding:12px 20px;border-radius:12px;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">🕵️ 谁是卧底 <span class="sub">传阅手机版</span></header>
+
+  <!-- ═══════════ 1. 设置 ═══════════ -->
+  <section class="screen active" id="s-setup">
+    <div class="card">
+      <h2>👥 玩家人数</h2>
+      <p class="hint">把全家人都算上，3 人即可开局。</p>
+      <div class="row">
+        <div><div class="label">总人数</div><div class="desc">建议 4–10 人最热闹</div></div>
+        <div class="stepper"><button data-step="players" data-d="-1">−</button><span class="val" id="v-players">6</span><button data-step="players" data-d="1">+</button></div>
+      </div>
+      <div class="row">
+        <div><div class="label">卧底人数</div><div class="desc">人多时可设 2 个卧底</div></div>
+        <div class="stepper"><button data-step="spies" data-d="-1">−</button><span class="val" id="v-spies">1</span><button data-step="spies" data-d="1">+</button></div>
+      </div>
+      <div class="row">
+        <div><div class="label">加入「白板」</div><div class="desc">白板没有词，全靠演技混过去</div></div>
+        <label class="switch"><input type="checkbox" id="t-blank"><span class="track"></span><span class="dot"></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 出题方式</h2>
+      <p class="hint">从词库随机抽，或自己出一对相近的词。</p>
+      <div class="seg" id="mode-seg">
+        <button class="on" data-mode="random">🎲 词库随机</button>
+        <button data-mode="custom">✍️ 自定义</button>
+      </div>
+      <div id="cat-block" style="margin-top:14px">
+        <div class="desc" style="margin-bottom:6px">题库分类（可多选）</div>
+        <div class="order-grid" id="cat-grid"></div>
+      </div>
+      <div id="custom-block" style="display:none;margin-top:14px">
+        <div class="row" style="margin:0 0 8px"><div class="label" style="flex:1">平民词</div><input type="text" id="word-civ" placeholder="例如：苹果" style="flex:1.4"></div>
+        <div class="row" style="margin:0"><div class="label" style="flex:1">卧底词</div><input type="text" id="word-spy" placeholder="例如：梨" style="flex:1.4"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🙋 玩家名字（可选）</h2>
+      <p class="hint">不填就用「1 号、2 号…」。每行一个名字。</p>
+      <textarea id="names" rows="3" placeholder="爸爸&#10;妈妈&#10;奶奶"></textarea>
+    </div>
+
+    <div class="btn-bar">
+      <button class="btn" id="btn-start">开始发牌 →</button>
+      <div class="footer-note">无需联网 · 数据只存在本机 · 一部手机轮流看词</div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 2. 传阅看词 ═══════════ -->
+  <section class="screen" id="s-reveal">
+    <div class="reveal-wrap">
+      <div class="pass-num" id="r-progress">第 1 / 6 位</div>
+      <div class="pass-name" id="r-name">把手机交给 爸爸</div>
+      <div class="reveal-card cover" id="r-card">
+        <div class="big">🤫</div>
+        <div class="tap" id="r-tap">轻触查看你的词</div>
+      </div>
+      <div class="hold-note" id="r-hold"></div>
+    </div>
+    <div class="btn-bar">
+      <button class="btn" id="btn-next" style="display:none">看好了，传给下一位 →</button>
+      <button class="btn ghost" id="btn-abort">放弃本局</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ 3. 发言 / 投票 ═══════════ -->
+  <section class="screen" id="s-play">
+    <div class="card">
+      <h2>🗣️ 发言顺序</h2>
+      <p class="hint">按下面的顺序，每人用一句话描述自己的词，不能直接说出词本身。</p>
+      <div class="order-grid" id="speak-order"></div>
+    </div>
+    <div class="card">
+      <h2>🗳️ 投票出局</h2>
+      <p class="hint">大家投票后，点谁出局就标记谁。出局后可继续投，直到揭晓。</p>
+      <ul class="plist" id="vote-list"></ul>
+    </div>
+    <div class="btn-bar">
+      <button class="btn danger" id="btn-reveal-result">🎭 揭晓答案</button>
+      <button class="btn ghost" id="btn-abort2">放弃本局</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ 4. 结果 ═══════════ -->
+  <section class="screen" id="s-result">
+    <div class="card">
+      <div class="result-spy">
+        <div class="crown">🕵️</div>
+        <h2 style="margin:6px 0">卧底是…</h2>
+        <div id="spy-names" style="font-size:1.4rem;font-weight:800;color:#fca5a5"></div>
+        <div id="blank-names" style="font-size:.95rem;color:var(--warn);margin-top:6px"></div>
+      </div>
+      <div class="words-box">
+        <div class="wb"><div class="t">平民词</div><div class="w" id="res-civ">—</div></div>
+        <div class="wb spy"><div class="t">卧底词</div><div class="w" id="res-spy">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📊 本局名单</h2>
+      <ul class="plist" id="result-list"></ul>
+    </div>
+    <div class="btn-bar">
+      <button class="btn" id="btn-again">🔄 换词再来一局</button>
+      <button class="btn secondary" id="btn-home">⚙️ 回到设置</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 词库 ============ */
+const WORD_BANK = {
+  "🍱 食物": [
+    ["苹果","梨"],["西瓜","冬瓜"],["牛奶","豆浆"],["可乐","雪碧"],["馒头","包子"],
+    ["米饭","炒饭"],["油条","麻花"],["火锅","麻辣烫"],["饺子","馄饨"],["蛋糕","面包"],
+    ["巧克力","威化"],["草莓","樱桃"],["薯条","薯片"],["豆腐脑","豆花"],["奶茶","咖啡"],
+    ["月饼","蛋黄酥"],["粽子","糯米饭"],["拿铁","卡布奇诺"]
+  ],
+  "🐾 动物": [
+    ["老虎","狮子"],["青蛙","蟾蜍"],["蜜蜂","蝴蝶"],["乌龟","王八"],["鸭子","大鹅"],
+    ["金鱼","锦鲤"],["熊猫","浣熊"],["骆驼","羊驼"],["仓鼠","松鼠"],["海豚","鲨鱼"],
+    ["蜗牛","蛞蝓"],["猫头鹰","老鹰"]
+  ],
+  "🏠 生活": [
+    ["牙刷","牙膏"],["枕头","抱枕"],["雨伞","遮阳伞"],["扇子","空调"],["电梯","扶梯"],
+    ["拖鞋","凉鞋"],["眼镜","墨镜"],["毛巾","浴巾"],["筷子","勺子"],["闹钟","手表"],
+    ["沙发","床"],["插座","开关"],["口红","唇膏"],["洗发水","沐浴露"]
+  ],
+  "🎬 娱乐": [
+    ["电影院","KTV"],["篮球","排球"],["象棋","围棋"],["钢琴","电子琴"],["相机","手机"],
+    ["游泳","潜水"],["跳绳","踢毽子"],["滑雪","滑冰"],["唱歌","跳舞"],["扑克","麻将"],
+    ["过山车","摩天轮"],["演唱会","音乐节"]
+  ],
+  "🌆 场景": [
+    ["医院","药店"],["学校","幼儿园"],["超市","菜市场"],["地铁","公交"],["银行","ATM"],
+    ["饭店","食堂"],["公园","广场"],["机场","火车站"],["图书馆","书店"],["理发店","美容院"]
+  ]
+};
+
+/* ============ 状态 ============ */
+const ST = {
+  players:6, spies:1, blank:false, mode:'random',
+  cats:Object.keys(WORD_BANK),
+  customCiv:'', customSpy:'',
+  names:[], deck:[], cur:0, civWord:'', spyWord:'', order:[]
+};
+const LS='spy_game_settings_v1';
+
+/* ============ 工具 ============ */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+function show(id){$$('.screen').forEach(e=>e.classList.remove('active'));$('#'+id).classList.add('active');window.scrollTo(0,0);}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buzz(ms){if(navigator.vibrate)navigator.vibrate(ms);}
+
+/* ============ 设置持久化 ============ */
+function saveSettings(){
+  try{localStorage.setItem(LS,JSON.stringify({players:ST.players,spies:ST.spies,blank:ST.blank,mode:ST.mode,cats:ST.cats}));}catch(e){}
+}
+function loadSettings(){
+  try{const d=JSON.parse(localStorage.getItem(LS)||'{}');
+    if(d.players)ST.players=d.players; if(d.spies)ST.spies=d.spies;
+    if(typeof d.blank==='boolean')ST.blank=d.blank; if(d.mode)ST.mode=d.mode;
+    if(Array.isArray(d.cats)&&d.cats.length)ST.cats=d.cats.filter(c=>WORD_BANK[c]);
+  }catch(e){}
+}
+
+/* ============ 设置界面 ============ */
+function clampSteppers(){
+  ST.players=Math.max(3,Math.min(20,ST.players));
+  const maxSpy=Math.max(1,Math.floor((ST.players-1)/2)); // 卧底必须是少数
+  ST.spies=Math.max(1,Math.min(maxSpy,ST.spies));
+}
+function renderSetup(){
+  clampSteppers();
+  $('#v-players').textContent=ST.players;
+  $('#v-spies').textContent=ST.spies;
+  $('#t-blank').checked=ST.blank;
+  $$('#mode-seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===ST.mode));
+  $('#cat-block').style.display=ST.mode==='random'?'block':'none';
+  $('#custom-block').style.display=ST.mode==='custom'?'block':'none';
+  $$('#cat-grid .chip').forEach(c=>c.classList.toggle('on',ST.cats.includes(c.dataset.cat)));
+}
+function buildCats(){
+  const g=$('#cat-grid');g.innerHTML='';
+  Object.keys(WORD_BANK).forEach(cat=>{
+    const c=document.createElement('div');c.className='chip';c.dataset.cat=cat;
+    c.style.cursor='pointer';c.textContent=cat;
+    c.onclick=()=>{
+      if(ST.cats.includes(cat)){if(ST.cats.length>1)ST.cats=ST.cats.filter(x=>x!==cat);else return toast('至少保留一个分类');}
+      else ST.cats.push(cat);
+      saveSettings();renderSetup();
+    };
+    g.appendChild(c);
+  });
+}
+$$('.stepper button').forEach(b=>b.onclick=()=>{ST[b.dataset.step]+=parseInt(b.dataset.d);clampSteppers();saveSettings();renderSetup();});
+$('#t-blank').onchange=e=>{ST.blank=e.target.checked;saveSettings();};
+$$('#mode-seg button').forEach(b=>b.onclick=()=>{ST.mode=b.dataset.mode;saveSettings();renderSetup();});
+
+/* ============ 开局发牌 ============ */
+function pickWordPair(){
+  if(ST.mode==='custom'){
+    const a=$('#word-civ').value.trim(),b=$('#word-spy').value.trim();
+    if(!a||!b){toast('请填写两个词');return null;}
+    if(a===b){toast('两个词不能一样');return null;}
+    return Math.random()<.5?[a,b]:[b,a]; // 随机哪个当平民词
+  }
+  const pool=[];ST.cats.forEach(c=>WORD_BANK[c].forEach(p=>pool.push(p)));
+  const pair=pool[Math.floor(Math.random()*pool.length)];
+  return Math.random()<.5?[pair[0],pair[1]]:[pair[1],pair[0]];
+}
+function startGame(){
+  clampSteppers();
+  // 校验白板+卧底不能占满或超过
+  const special=ST.spies+(ST.blank?1:0);
+  if(special>=ST.players){toast('平民太少了，请减少卧底/白板或加人');return;}
+  const pair=pickWordPair();if(!pair)return;
+  ST.civWord=pair[0];ST.spyWord=pair[1];
+
+  // 名字
+  const raw=$('#names').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  ST.names=[];
+  for(let i=0;i<ST.players;i++)ST.names.push(raw[i]||(i+1)+' 号');
+
+  // 角色分配
+  const roles=[]; // 'civ' | 'spy' | 'blank'
+  for(let i=0;i<ST.spies;i++)roles.push('spy');
+  if(ST.blank)roles.push('blank');
+  while(roles.length<ST.players)roles.push('civ');
+  const shuffledRoles=shuffle(roles);
+
+  ST.deck=ST.names.map((nm,i)=>({name:nm,role:shuffledRoles[i],out:false,seen:false}));
+  ST.order=shuffle(ST.deck.map((_,i)=>i)); // 发言顺序
+  ST.cur=0;
+  saveSettings();
+  show('s-reveal');renderReveal();
+}
+$('#btn-start').onclick=startGame;
+
+/* ============ 传阅看词 ============ */
+function wordFor(p){
+  if(p.role==='spy')return ST.spyWord;
+  if(p.role==='blank')return null;
+  return ST.civWord;
+}
+function renderReveal(){
+  const p=ST.deck[ST.cur];
+  $('#r-progress').textContent=`第 ${ST.cur+1} / ${ST.deck.length} 位`;
+  $('#r-name').textContent=`把手机交给 ${p.name}`;
+  const card=$('#r-card');
+  card.className='reveal-card cover';
+  card.innerHTML='<div class="big">🤫</div><div class="tap">轻触查看你的词</div>';
+  $('#btn-next').style.display='none';
+  $('#r-hold').textContent='';
+  card._open=false;
+}
+function openCard(){
+  const p=ST.deck[ST.cur];if($('#r-card')._open)return;
+  $('#r-card')._open=true;p.seen=true;buzz(20);
+  const card=$('#r-card');card.className='reveal-card shown';
+  const w=wordFor(p);
+  if(p.role==='blank'){
+    card.innerHTML='<div class="role-tag">你是 白板</div><div class="word">？？？</div><div class="tap">你没有词，靠观察混进去！</div>';
+  }else{
+    card.innerHTML=`<div class="role-tag">你的词</div><div class="word">${w}</div><div class="tap">记住它，别让人看出来</div>`;
+  }
+  $('#r-hold').textContent='看完松开/移开视线，再点下面的按钮';
+  $('#btn-next').style.display='flex';
+}
+$('#r-card').onclick=openCard;
+$('#btn-next').onclick=()=>{
+  if(ST.cur<ST.deck.length-1){ST.cur++;renderReveal();}
+  else{startPlay();}
+};
+
+/* ============ 发言 / 投票 ============ */
+function startPlay(){
+  show('s-play');
+  const so=$('#speak-order');so.innerHTML='';
+  ST.order.forEach((idx,i)=>{
+    const c=document.createElement('div');c.className='chip';
+    c.innerHTML=`<b>${i+1}</b> ${ST.deck[idx].name}`;
+    so.appendChild(c);
+  });
+  renderVoteList();
+}
+function renderVoteList(){
+  const ul=$('#vote-list');ul.innerHTML='';
+  ST.deck.forEach((p,i)=>{
+    const li=document.createElement('li');if(p.out)li.classList.add('out');
+    li.innerHTML=`<span class="idx">${i+1}</span><span class="nm">${p.name}</span>`;
+    const b=document.createElement('button');b.className='vote';
+    b.textContent=p.out?'已出局 ✓':'投出局';
+    b.onclick=()=>{p.out=!p.out;buzz(15);renderVoteList();};
+    li.appendChild(b);ul.appendChild(li);
+  });
+}
+$('#btn-reveal-result').onclick=showResult;
+
+/* ============ 结果 ============ */
+function showResult(){
+  show('s-result');
+  const spies=ST.deck.filter(p=>p.role==='spy').map(p=>p.name);
+  const blanks=ST.deck.filter(p=>p.role==='blank').map(p=>p.name);
+  $('#spy-names').textContent=spies.join('、');
+  $('#blank-names').textContent=blanks.length?('白板：'+blanks.join('、')):'';
+  $('#res-civ').textContent=ST.civWord;
+  $('#res-spy').textContent=ST.spyWord;
+  const ul=$('#result-list');ul.innerHTML='';
+  ST.deck.forEach((p,i)=>{
+    const li=document.createElement('li');
+    const tag=p.role==='spy'?'🕵️ 卧底':p.role==='blank'?'⬜ 白板':'🙂 平民';
+    const st=p.out?'<span class="pill" style="color:#fca5a5">已被投出</span>':'';
+    li.innerHTML=`<span class="idx">${i+1}</span><span class="nm">${p.name} <span class="pill">${tag}</span></span>${st}`;
+    ul.appendChild(li);
+  });
+}
+$('#btn-again').onclick=()=>{ // 同一批人、换词重开
+  $('#names').value=ST.names.map((n,i)=>n===(i+1)+' 号'?'':n).join('\n');
+  startGame();
+};
+$('#btn-home').onclick=()=>show('s-setup');
+$('#btn-abort').onclick=$('#btn-abort2').onclick=()=>{if(confirm('放弃本局，回到设置？'))show('s-setup');};
+
+/* ============ 初始化 ============ */
+loadSettings();buildCats();renderSetup();
+</script>
+</body>
+</html>
