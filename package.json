@@ -1,0 +1,19 @@
+{
+  "name": "zhuanpan",
+  "version": "1.0.0",
+  "description": "帮选择困难症患者生成随机做决定的转盘，主题和选项均可自定义",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:33829/git/zcxxcz/zhuanpan"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
