@@ -78,6 +78,8 @@
   .reveal-card .word{font-size:2.6rem;font-weight:900;letter-spacing:2px}
   .reveal-card .tap{font-size:.95rem;color:rgba(255,255,255,.75)}
   .reveal-card .role-tag{font-size:.8rem;padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:700}
+  .speak-btn{margin-top:6px;border:0;border-radius:999px;padding:12px 22px;font-size:1.05rem;font-weight:700;color:#fff;background:rgba(255,255,255,.18);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .speak-btn:active{transform:scale(.95);background:rgba(255,255,255,.3)}
   .hold-note{font-size:.78rem;color:var(--warn);min-height:18px}
 
   /* list */
@@ -371,21 +373,43 @@ function renderReveal(){
   $('#r-hold').textContent='';
   card._open=false;
 }
+/* 语音朗读：给不识字的孩子用，本地合成、不联网 */
+const TTS = ('speechSynthesis' in window);
+function speak(text){
+  if(!TTS)return;
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=0.85; u.volume=0.55; // 音量调低，避免被旁人听到
+    const v=window.speechSynthesis.getVoices().find(x=>/zh|cmn|Chinese/i.test(x.lang+x.name));
+    if(v)u.voice=v;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeak(){ if(TTS){try{window.speechSynthesis.cancel();}catch(e){}} }
 function openCard(){
   const p=ST.deck[ST.cur];if($('#r-card')._open)return;
   $('#r-card')._open=true;p.seen=true;buzz(20);
   const card=$('#r-card');card.className='reveal-card shown';
   const w=wordFor(p);
-  if(p.role==='blank'){
-    card.innerHTML='<div class="role-tag">你是 白板</div><div class="word">？？？</div><div class="tap">你没有词，靠观察混进去！</div>';
+  const isBlank=p.role==='blank';
+  const speakText=isBlank?'你是白板。你没有自己的词。注意听别人说，悄悄混进去。':`你的词是：${w}。${w}。`;
+  const btn=TTS?'<button class="speak-btn" id="r-speak">🔊 读给我听</button>':'';
+  if(isBlank){
+    card.innerHTML=`<div class="role-tag">你是 白板</div><div class="word">？？？</div><div class="tap">你没有词，靠观察混进去！</div>${btn}`;
   }else{
-    card.innerHTML=`<div class="role-tag">你的词</div><div class="word">${w}</div><div class="tap">记住它，别让人看出来</div>`;
+    card.innerHTML=`<div class="role-tag">你的词</div><div class="word">${w}</div><div class="tap">记住它，别让人看出来</div>${btn}`;
   }
-  $('#r-hold').textContent='看完松开/移开视线，再点下面的按钮';
+  if(TTS){
+    const sb=$('#r-speak');
+    sb.onclick=e=>{e.stopPropagation();buzz(15);speak(speakText);};
+  }
+  $('#r-hold').textContent=TTS?'🔈 不识字的小朋友可点「读给我听」，请贴近耳朵小声听':'看完移开视线，再点下面的按钮';
   $('#btn-next').style.display='flex';
 }
 $('#r-card').onclick=openCard;
 $('#btn-next').onclick=()=>{
+  stopSpeak();
   if(ST.cur<ST.deck.length-1){ST.cur++;renderReveal();}
   else{startPlay();}
 };
@@ -437,7 +461,7 @@ $('#btn-again').onclick=()=>{ // 同一批人、换词重开
   startGame();
 };
 $('#btn-home').onclick=()=>show('s-setup');
-$('#btn-abort').onclick=$('#btn-abort2').onclick=()=>{if(confirm('放弃本局，回到设置？'))show('s-setup');};
+$('#btn-abort').onclick=$('#btn-abort2').onclick=()=>{if(confirm('放弃本局，回到设置？')){stopSpeak();show('s-setup');}};
 
 /* ============ 初始化 ============ */
 loadSettings();buildCats();renderSetup();

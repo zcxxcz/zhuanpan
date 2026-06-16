@@ -2,7 +2,14 @@ const { JSDOM } = require("jsdom");
 const fs = require("fs");
 
 const html = fs.readFileSync("spy/index.html", "utf8");
-const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true });
+const spoken = [];
+const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true,
+  beforeParse(w){
+    // 模拟浏览器语音合成 API，用于测试「读给我听」
+    w.SpeechSynthesisUtterance = function(t){ this.text=t; };
+    w.speechSynthesis = { speak:u=>spoken.push(u.text), cancel:()=>{}, getVoices:()=>[] };
+  }
+});
 const { window } = dom;
 const doc = window.document;
 const $ = s => doc.querySelector(s);
@@ -41,7 +48,7 @@ $("#names").value = "爸爸\n妈妈\n奶奶"; // 只填 3 个，其余自动编�
 click($("#btn-start"));
 ok(activeScreen()==="s-reveal","进入看词页");
 
-console.log("== Test 4: 传阅看词 8 人全流程 ==");
+console.log("== Test 4: 传阅看词 8 人全流程 + 读给我听 ==");
 let spyCount=0, blankCount=0, civCount=0, wordsSeen=new Set();
 for(let i=0;i<8;i++){
   ok($("#r-progress").textContent===`第 ${i+1} / 8 位`, `进度第 ${i+1} 位`);
@@ -51,8 +58,13 @@ for(let i=0;i<8;i++){
   ok($("#btn-next").style.display!=="none", `第 ${i+1} 位翻牌后出现按钮`);
   const tag=$("#r-card .role-tag").textContent;
   const word=$("#r-card .word").textContent;
-  if(tag.includes("白板")) blankCount++;
-  else { wordsSeen.add(word); }
+  // 读给我听按钮
+  const sb=$("#r-speak");
+  ok(sb, `第 ${i+1} 位出现「读给我听」按钮`);
+  const n0=spoken.length; click(sb);
+  ok(spoken.length===n0+1, `第 ${i+1} 位点朗读后触发语音`);
+  if(tag.includes("白板")) { blankCount++; ok(spoken[spoken.length-1].includes("白板"),"白板朗读内容含'白板'"); }
+  else { wordsSeen.add(word); ok(spoken[spoken.length-1].includes(word),`朗读内容含词「${word}」`); }
   click($("#btn-next"));
 }
 ok(activeScreen()==="s-play","8 人看完进入发言页");
