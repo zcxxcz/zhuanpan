@@ -92,8 +92,13 @@
   .plist li.out .vote{background:var(--bad);border-color:var(--bad);color:#fff}
 
   .order-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-  .order-grid .chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px}
+  .order-grid .chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s}
   .order-grid .chip b{color:var(--brand2)}
+  /* 可选分类：未选=暗灰描边，已选=高亮填充 */
+  #cat-grid .chip{opacity:.5}
+  #cat-grid .chip::before{content:"○";font-size:.9rem;opacity:.7}
+  #cat-grid .chip.on{opacity:1;background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,.4)}
+  #cat-grid .chip.on::before{content:"✓"}
 
   /* result */
   .result-spy{text-align:center;padding:8px 0}

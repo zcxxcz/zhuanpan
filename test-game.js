@@ -32,6 +32,22 @@ ok($("#v-players").textContent==="6", "默认 6 人");
 ok($("#v-spies").textContent==="1", "默认 1 卧底");
 ok($("#cat-grid").children.length===5, "5 个分类按钮");
 
+console.log("== Test 1b: 题库分类可选 & 视觉状态 ==");
+const cats=[...doc.querySelectorAll("#cat-grid .chip")];
+ok(cats.every(c=>c.classList.contains("on")),"默认全部分类选中(.on)");
+const firstCat=cats[0];
+click(firstCat);
+ok(!firstCat.classList.contains("on"),"点击后取消选中(.on 移除)");
+ok(cats.filter(c=>c.classList.contains("on")).length===4,"现在剩 4 个选中");
+click(firstCat);
+ok(firstCat.classList.contains("on"),"再点恢复选中");
+// 至少保留一个：全部取消到只剩 1 个时再点应被拦下
+cats.slice(1).forEach(c=>click(c));
+ok(cats.filter(c=>c.classList.contains("on")).length===1,"最多只能留到 1 个");
+click(cats[0]);
+ok(cats.filter(c=>c.classList.contains("on")).length===1,"已是最后一个时不能再取消");
+cats.forEach(c=>{if(!c.classList.contains("on"))click(c);}); // 复原全选
+
 console.log("== Test 2: 步进器 & 卧底上限 ==");
 const plusSpy = [...doc.querySelectorAll('.stepper button')].find(b=>b.dataset.step==="spies"&&b.dataset.d==="1");
 for(let i=0;i<10;i++) click(plusSpy);
