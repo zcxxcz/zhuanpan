@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>学习与时间指引地图 · 通往 FDE</title>
+<!-- 字体改用系统自带（苹方/雅黑/宋体），不依赖被墙的 Google Fonts，确保国内可正常访问 -->
+<!-- 强制深色：color-scheme + html/全屏兜底层，避免移动端 webview 把底色刷白导致浅字看不清 -->
+<style>
+  :root{
+    --ink:#0f141b;
+    --ink-2:#161e28;
+    --panel:#1a232f;
+    --panel-2:#212c3a;
+    --line:#2b3a4c;
+    --line-soft:#23303f;
+    --steel:#6ea3e0;
+    --steel-deep:#3f6fa8;
+    --steel-dim:#456079;
+    --brass:#d9a441;
+    --brass-bright:#f0c869;
+    --brass-deep:#a87a26;
+    --asset:#4db89a;
+    --asset-deep:#2f8068;
+    --dim:#6b7888;
+    --text-hi:#eef2f7;
+    --text-mid:#a6b3c2;
+    --text-low:#6a798b;
+    --paper:#f3eee2;
+    --paper-2:#eae2d2;
+    --paper-ink:#23262c;
+    --paper-mid:#5c5648;
+    --paper-line:#d8cfba;
+    --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    --sans:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;background:var(--ink);color-scheme:dark}
+  body{
+    background:var(--ink);color:var(--text-hi);
+    font-family:var(--sans);font-weight:300;line-height:1.85;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-color:var(--ink);
+    background-image:
+      radial-gradient(900px 480px at 85% -8%, rgba(217,164,65,.07), transparent 60%),
+      radial-gradient(1000px 700px at -12% 105%, rgba(110,163,224,.07), transparent 55%);
+  }
+  /* faint blueprint grid */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;
+    background-image:
+      linear-gradient(rgba(110,163,224,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(110,163,224,.035) 1px,transparent 1px);
+    background-size:42px 42px;
+  }
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:92px 0 36px}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--brass);
+    text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:14px;
+  }
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--brass)}
+  .hero h1{font-family:var(--serif);font-weight:900;font-size:clamp(38px,7vw,76px);line-height:1.06;letter-spacing:-.01em}
+  .hero h1 .accent{color:var(--brass-bright)}
+  .hero .sub{margin-top:28px;max-width:660px;font-size:18px;color:var(--text-mid);line-height:1.9}
+
+  /* compass */
+  .compass{
+    margin-top:46px;border-radius:16px;border:1px solid var(--line);
+    border-left:4px solid var(--brass);background:linear-gradient(135deg,rgba(217,164,65,.08),rgba(110,163,224,.04));
+    padding:28px 32px;
+  }
+  .compass .label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--brass-bright);margin-bottom:12px}
+  .compass p{font-size:16.5px;color:var(--text-hi);line-height:1.9}
+  .compass p b{color:var(--brass-bright);font-weight:500}
+  .compass p .q{color:var(--steel);font-weight:500}
+
+  /* ---------- SECTION HEADER ---------- */
+  .sec-head{padding:72px 0 6px}
+  .sec-head .k{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--text-low);margin-bottom:10px;text-transform:uppercase}
+  .sec-head h2{font-family:var(--serif);font-size:clamp(26px,4.4vw,40px);font-weight:700;line-height:1.2}
+  .sec-head .d{margin-top:14px;color:var(--text-mid);font-size:15.5px;max-width:680px}
+
+  /* ---------- LAYERS ---------- */
+  .stack{margin-top:30px;display:flex;flex-direction:column;gap:18px}
+  .layer{
+    border-radius:16px;border:1px solid var(--line);background:var(--panel);overflow:hidden;
+    opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease;
+  }
+  .layer.in{opacity:1;transform:none}
+  .layer .lh{padding:24px 28px 20px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;border-bottom:1px solid var(--line-soft)}
+  .layer .tier{
+    font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;padding:6px 11px;border-radius:7px;white-space:nowrap;
+  }
+  .layer .lh-main{flex:1;min-width:240px}
+  .layer .lh-main h3{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1.3}
+  .layer .lh-main h3 .en{font-family:var(--mono);font-size:13px;color:var(--text-low);font-weight:400;margin-left:10px;letter-spacing:.02em}
+  .layer .lh-main .what{font-size:14.5px;color:var(--text-mid);margin-top:7px;line-height:1.7}
+
+  /* time badge */
+  .timebadge{text-align:right;min-width:120px}
+  .timebadge .pct{font-family:var(--mono);font-weight:700;font-size:30px;line-height:1}
+  .timebadge .pl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--text-low);text-transform:uppercase;margin-top:5px}
+
+  .layer .lb{padding:8px 28px 26px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .cell{border-radius:11px;border:1px solid var(--line-soft);background:var(--ink-2);padding:15px 17px}
+  .cell .ct{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--text-low);text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+  .cell .ct .dot{width:7px;height:7px;border-radius:50%}
+  .cell .cv{font-size:14px;color:var(--text-mid);line-height:1.75}
+  .cell .cv b{color:var(--text-hi);font-weight:500}
+  .cell .cv .res{font-family:var(--mono);font-size:12.5px;color:var(--steel)}
+  .row-note{margin-top:14px;font-size:13.5px;color:var(--text-low);border-top:1px dashed var(--line-soft);padding-top:13px;line-height:1.75}
+  .row-note b{color:var(--text-mid);font-weight:500}
+  .row-note .why{color:var(--brass-bright);font-weight:500}
+  .row-note .kid{color:var(--asset);font-weight:500}
+
+  /* layer accent variants */
+  .layer.bg{border-left:4px solid var(--steel-dim);opacity:.96}
+  .layer.bg .tier{color:var(--dim);background:rgba(107,120,136,.14);border:1px solid rgba(107,120,136,.3)}
+  .layer.bg .lh-main h3{color:var(--text-mid)}
+  .layer.bg .timebadge .pct{color:var(--dim)}
+  .layer.bg .cell .ct .dot{background:var(--dim)}
+  .layer.bg .cell .cv .res{color:var(--steel-dim)}
+
+  .layer.main{border-left:4px solid var(--brass);box-shadow:0 0 0 1px rgba(217,164,65,.12),0 14px 40px -22px rgba(217,164,65,.4)}
+  .layer.main .tier{color:var(--brass-bright);background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.35)}
+  .layer.main .lh-main h3{color:var(--text-hi)}
+  .layer.main .timebadge .pct{color:var(--brass-bright)}
+  .layer.main .cell .ct .dot{background:var(--brass)}
+  .layer.main .star{font-family:var(--mono);font-size:11px;color:var(--brass-bright);letter-spacing:.1em;margin-top:4px;display:block}
+
+  .layer.deliver{border-left:4px solid var(--asset)}
+  .layer.deliver .tier{color:var(--asset);background:rgba(77,184,154,.13);border:1px solid rgba(77,184,154,.32)}
+  .layer.deliver .lh-main h3{color:var(--text-hi)}
+  .layer.deliver .timebadge .pct{color:var(--asset)}
+  .layer.deliver .cell .ct .dot{background:var(--asset)}
+  .layer.deliver .cell .cv .res{color:var(--asset)}
+
+  /* ---------- WIRING RULE ---------- */
+  .wiring{margin-top:26px;border-radius:14px;border:1px dashed var(--line);background:rgba(255,255,255,.015);padding:24px 28px}
+  .wiring h4{font-family:var(--serif);font-size:19px;font-weight:700;margin-bottom:6px}
+  .wiring .sub{font-size:14px;color:var(--text-mid);margin-bottom:18px}
+  .pair{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line-soft);flex-wrap:wrap}
+  .pair:last-child{border-bottom:none}
+  .pair .chip{font-family:var(--mono);font-size:12.5px;padding:5px 11px;border-radius:7px;background:var(--ink-2);border:1px solid var(--line-soft);color:var(--text-mid)}
+  .pair .link{font-family:var(--mono);font-size:15px}
+  .pair .ok{color:var(--asset)}
+  .pair .no{color:#d97a6a}
+  .pair .verdict{font-size:13.5px;color:var(--text-low);margin-left:auto}
+  .pair.bad{background:rgba(217,122,106,.05);border-radius:9px;padding:11px 14px;margin-top:4px;border:1px solid rgba(217,122,106,.2)}
+
+  /* ---------- TIME PLAN ---------- */
+  .effortbar{margin-top:24px;border-radius:13px;overflow:hidden;display:flex;height:54px;border:1px solid var(--line);font-family:var(--mono)}
+  .eb{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:#0f141b;font-weight:700;letter-spacing:.03em;line-height:1.3}
+  .eb small{font-size:10px;font-weight:500;opacity:.8}
+  .eb.l2{background:linear-gradient(180deg,var(--brass-bright),var(--brass));flex:55}
+  .eb.l3{background:linear-gradient(180deg,#5fcaac,var(--asset));flex:28}
+  .eb.l1{background:linear-gradient(180deg,#8493a5,var(--dim));flex:17}
+
+  .phases{margin-top:26px;position:relative;padding-left:30px}
+  .phases::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--brass),var(--steel-deep));opacity:.5}
+  .phase{position:relative;margin-bottom:20px}
+  .phase .pn{position:absolute;left:-30px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--ink);border:2px solid var(--brass);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--brass-bright)}
+  .phase .pcard{border-radius:12px;border:1px solid var(--line);background:var(--panel);padding:17px 22px}
+  .phase .ph{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .phase .ph h4{font-family:var(--serif);font-size:18px;font-weight:700}
+  .phase .ph .t{font-family:var(--mono);font-size:11.5px;color:var(--brass);letter-spacing:.05em}
+  .phase .pcard p{font-size:14.5px;color:var(--text-mid);line-height:1.8}
+  .phase .pcard p b{color:var(--text-hi);font-weight:500}
+  .phase .pcard p .res{font-family:var(--mono);font-size:12.5px;color:var(--steel)}
+
+  /* ---------- ASSETS / REFRAME ---------- */
+  .twocol{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .box{border-radius:14px;padding:24px 26px;border:1px solid var(--line)}
+  .box.assets{border-top:3px solid var(--asset);background:linear-gradient(160deg,rgba(77,184,154,.06),transparent)}
+  .box.reframe{border-top:3px solid var(--brass);background:linear-gradient(160deg,rgba(217,164,65,.06),transparent)}
+  .box h4{font-family:var(--serif);font-size:19px;font-weight:700;margin-bottom:14px}
+  .box ul{list-style:none}
+  .box li{font-size:14px;color:var(--text-mid);line-height:1.7;padding:8px 0;padding-left:22px;position:relative;border-bottom:1px dashed var(--line-soft)}
+  .box li:last-child{border-bottom:none}
+  .box.assets li::before{content:"▸";position:absolute;left:0;color:var(--asset);font-size:12px;top:9px}
+  .box li b{color:var(--text-hi);font-weight:500}
+  .box li .arrow{color:var(--asset);font-weight:500}
+  .box.reframe p{font-size:14.5px;color:var(--text-mid);line-height:1.85;margin-bottom:13px}
+  .box.reframe p b{color:var(--brass-bright);font-weight:500}
+  .box.reframe .punch{font-size:15px;color:var(--text-hi);border-left:3px solid var(--brass);padding-left:14px;line-height:1.8}
+
+  /* ---------- APPENDIX ---------- */
+  .appendix{margin-top:80px;padding-bottom:90px}
+  .appendix .ap-head .eyebrow{color:var(--text-low)}
+  .appendix .ap-head .eyebrow::before{background:var(--text-low)}
+  .appendix .ap-head h2{font-family:var(--serif);font-size:clamp(26px,4vw,36px);font-weight:700}
+  .appendix .ap-head p{margin-top:12px;color:var(--text-mid);font-size:15px;max-width:640px}
+
+  .prior-note{
+    margin:20px 0;border-radius:11px;border:1px dashed var(--line);background:rgba(110,163,224,.04);
+    padding:16px 20px;font-size:13.5px;color:var(--text-mid);line-height:1.8;
+  }
+  .prior-note b{color:var(--steel)}
+  .prior-note .ts{font-family:var(--mono);font-size:12px;color:var(--text-low)}
+
+  .ap-controls{margin:18px 0 20px}
+  .ap-controls button{font-family:var(--mono);font-size:12px;letter-spacing:.05em;cursor:pointer;background:transparent;color:var(--text-mid);border:1px solid var(--line);padding:8px 15px;border-radius:7px;transition:all .2s ease}
+  .ap-controls button:hover{color:var(--brass-bright);border-color:var(--brass-deep)}
+
+  details.qa{background:var(--paper);color:var(--paper-ink);border-radius:12px;margin-bottom:14px;overflow:hidden;border:1px solid var(--paper-line)}
+  details.qa > summary{list-style:none;cursor:pointer;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;font-weight:500}
+  details.qa > summary::-webkit-details-marker{display:none}
+  details.qa > summary .num{font-family:var(--mono);font-size:12px;font-weight:700;color:#6f4d12;background:var(--paper-2);border-radius:6px;padding:3px 8px;white-space:nowrap;margin-top:1px}
+  details.qa > summary .q-txt{flex:1;font-size:15.5px;line-height:1.65;color:var(--paper-ink);word-break:break-word}
+  details.qa > summary .chev{font-family:var(--mono);color:var(--paper-mid);transition:transform .25s ease;margin-top:2px;font-size:13px}
+  details.qa[open] > summary{border-bottom:1px solid var(--paper-line);background:var(--paper-2)}
+  details.qa[open] > summary .chev{transform:rotate(90deg)}
+  .answer{padding:8px 26px 26px;font-size:14.5px;line-height:1.92;color:#33373e}
+  .answer h5{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#6f4d12;text-transform:uppercase;margin:22px 0 6px;font-weight:700}
+  .answer p{margin:13px 0;color:#3a3e46}
+  .answer p:first-child{margin-top:14px}
+  .answer b{color:var(--paper-ink);font-weight:700}
+  .answer em{font-style:normal;background:rgba(217,164,65,.22);padding:1px 4px;border-radius:3px;color:#5a4012;font-weight:500}
+  .answer code{font-family:var(--mono);font-size:.9em;background:rgba(63,111,168,.12);padding:1px 5px;border-radius:4px;color:#2d4f78}
+  .answer table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  .answer th,.answer td{border:1px solid var(--paper-line);padding:8px 10px;text-align:left}
+  .answer th{background:var(--paper-2);font-weight:700;color:var(--paper-ink)}
+
+  footer{padding:38px 0 60px;border-top:1px solid var(--line);text-align:center}
+  footer p{font-family:var(--mono);font-size:12px;color:var(--text-low);letter-spacing:.04em;line-height:2}
+
+  @media(max-width:680px){
+    .wrap{padding:0 18px}
+    .hero{padding:60px 0 26px}
+    .compass{padding:22px 22px}
+    .layer .lh{flex-direction:column;gap:12px;padding:20px 20px 16px}
+    .timebadge{text-align:left;min-width:0}
+    .timebadge .pct{font-size:26px}
+    .layer .lb{padding:6px 20px 22px}
+    .grid2{grid-template-columns:1fr;gap:11px}
+    .twocol{grid-template-columns:1fr}
+    .effortbar{height:auto;flex-direction:column}
+    .eb{padding:12px;flex:none!important}
+    .pair .verdict{margin-left:0;width:100%}
+    .answer{padding:8px 16px 22px}
+    .answer table{font-size:11.5px}
+    .answer th,.answer td{padding:6px 7px}
+    details.qa > summary{padding:16px 16px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .layer{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow">学习与时间指引地图 · 个人版</div>
+    <h1>三层之上,<br>把时间投在<span class="accent">离工作最近的那层</span></h1>
+    <p class="sub">这不是"读什么"的清单,而是"时间该往哪投"的决策图。三篇 Tw93 文章、几个动手项目,按你瞄准的 applied / product / <b style="color:var(--brass-bright);font-weight:500">FDE</b> 目标,重新排过优先级。</p>
+
+    <div class="compass">
+      <div class="label">▌ 定盘星 / 这张图的全部逻辑</div>
+      <p>你要卖的能力,是<b>"把现成模型变得好用"</b>,不是"造模型"。所以时间分配是按这个目标<b>倒过来</b>排的:离你工作最近的层,投入最多;越往底层(造模型),越是"懂原理即可"的背景。一句话——<span class="q">FDE 的活,是 harness 层,不是模型层。</span></p>
+    </div>
+  </header>
+
+  <!-- THE THREE LAYERS -->
+  <section>
+    <div class="sec-head">
+      <div class="k">The Stack · 三层架构</div>
+      <h2>把三篇文章、所有动手,归到三层里</h2>
+      <div class="d">颜色就是优先级:<b style="color:var(--brass-bright)">金色 = 主战场,重投入</b>;<b style="color:var(--asset)">青绿 = 变现层,持续投入</b>;<b style="color:var(--dim)">灰蓝 = 背景层,轻投入</b>。从下往上是技术栈,但你的时间不按栈深走。</div>
+    </div>
+
+    <div class="stack">
+
+      <!-- LAYER 2 - MAIN (placed first because it's the priority) -->
+      <div class="layer main">
+        <div class="lh">
+          <div class="tier">LAYER 2 · 主战场</div>
+          <div class="lh-main">
+            <h3>Harness / Agent 层<span class="en">the controls — 你的吃饭家伙</span></h3>
+            <div class="what">拿一个现成的模型,组织成一个能稳定干活的系统:控制流、上下文工程、工具设计、记忆、评测、追踪、安全。</div>
+            <span class="star">★ 这就是 FDE 的岗位描述本身</span>
+          </div>
+          <div class="timebadge">
+            <div class="pct">~55%</div>
+            <div class="pl">时间占比</div>
+          </div>
+        </div>
+        <div class="lb">
+          <div class="grid2">
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>理论地图</div>
+              <div class="cv">Tw93《<b>你不知道的 Agent:原理、架构与工程实践</b>》——它几乎就是 Claude Code 的内部原理说明书。</div>
+            </div>
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>动手实验室</div>
+              <div class="cv"><span class="res">20 行循环</span> → <b>learn-claude-code</b>(20 章手搓 harness)→ 在 <b>Claude Code</b> 里逐项验证 → <b>OpenClaw</b> 对照真实源码</div>
+            </div>
+          </div>
+          <div class="row-note">
+            <b>难点性质:</b>后半截是<b>经验工程</b>(古德哈特定律 / 激励设计),不是数学。<span class="why">你十年商业运营、设 KPI、看人钻流程漏洞的背景,在这里是稀缺资产。</span><br>
+            <span class="kid">你的领先:</span>你天天用 Claude Code、写过 cold-water-critic / khazix-writer / publish、对比过 OpenClaw——你早就在这层了,只是缺一张地图把"手感"变成"原理"。<br>
+            <span class="why">补的空档:</span>learn-claude-code 正是这层一直缺的"中间台阶"——agent 层的 nanoGPT / nanochat,从那 20 行一路加料到完整 harness,和你模型层的梯子结构对称。<b>但要限时:</b>20 章会上瘾,它是手段不是目的,别让它把 Layer 3 的作品挤掉。
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYER 3 - DELIVER -->
+      <div class="layer deliver">
+        <div class="lh">
+          <div class="tier">LAYER 3 · 变现层</div>
+          <div class="lh-main">
+            <h3>应用 / 交付层<span class="en">the product — 作品 &gt; 简历</span></h3>
+            <div class="what">用上面两层的理解,做出真能跑的东西、建立可证明的作品集。FDE 招聘看的是"你做过什么",不是"你读过什么"。</div>
+          </div>
+          <div class="timebadge">
+            <div class="pct">~28%</div>
+            <div class="pl">时间占比</div>
+          </div>
+        </div>
+        <div class="lb">
+          <div class="grid2">
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>理论地图</div>
+              <div class="cv">你自己的项目;Tw93《AI Coding》《Claude Code》两篇当辅助参考。</div>
+            </div>
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>动手实验室</div>
+              <div class="cv">你已有的资产:<b>胖猴信奥工具</b>(Luogu 诊断)、<span class="res">publish skill</span>、写作/批评 skills——把它们升级到"作品集"级别。</div>
+            </div>
+          </div>
+          <div class="row-note">
+            <span class="kid">关键连接:</span>你的胖猴项目本来就是<b>真实场景</b>,正好当 Layer 2 技能的练兵场——把一个真实需求,用 Agent 工程的结构(工具/记忆/评测)重做一遍,它就同时是练习、是作品、是面试能讲的案例。三件事一次办成。
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYER 1 - BACKGROUND -->
+      <div class="layer bg">
+        <div class="lh">
+          <div class="tier">LAYER 1 · 背景层</div>
+          <div class="lh-main">
+            <h3>模型层<span class="en">the engine — 懂原理即可</span></h3>
+            <div class="what">模型权重是怎么来的:架构 + 训练。理解它,是为了看懂上面两层"为什么"是这样,而不是为了自己去训模型。</div>
+          </div>
+          <div class="timebadge">
+            <div class="pct">~17%</div>
+            <div class="pl">时间占比</div>
+          </div>
+        </div>
+        <div class="lb">
+          <div class="grid2">
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>理论地图</div>
+              <div class="cv">Tw93《<b>你不知道的大模型训练</b>》——当全景地图读,别指望它"点火"。</div>
+            </div>
+            <div class="cell">
+              <div class="ct"><span class="dot"></span>动手实验室</div>
+              <div class="cv"><span class="res">3B1B 点火</span> → <span class="res">micrograd</span> → <span class="res">nanoGPT</span> →(选)<span class="res">nanochat / Raschka</span></div>
+            </div>
+          </div>
+          <div class="row-note">
+            <b>难点性质:</b>前半截(架构 / 反向传播)是<b>数学,可推导</b>,够用即止,不必钻 GRPO 工程那种深水区。<br>
+            <span class="kid">给孩子:</span>这层的前半截(图 + 递归 + 一点导数)正好是孩子的菜,可以分给他——这是你俩唯一真正重叠、且他可能比你快的地方。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- WIRING RULE -->
+  <section>
+    <div class="wiring">
+      <h4>接线规则:理论配动手,只在同层内配对</h4>
+      <div class="sub">这是上次踩的那个坑——跨层配对会扑空。一句话记住:一篇讲"造发动机",一篇讲"组装整车",别拿铸造手册去配调校实践。</div>
+      <div class="pair">
+        <span class="chip">训练文章 (L1)</span><span class="link ok">↔</span><span class="chip">nanochat (L1)</span>
+        <span class="verdict ok" style="color:var(--asset)">✓ 同层,接得上</span>
+      </div>
+      <div class="pair">
+        <span class="chip">Agent 文章 (L2)</span><span class="link ok">↔</span><span class="chip">20行循环 / learn-claude-code / Claude Code / OpenClaw (L2)</span>
+        <span class="verdict ok" style="color:var(--asset)">✓ 同层,接得上</span>
+      </div>
+      <div class="pair bad">
+        <span class="chip">Agent 文章 (L2)</span><span class="link no">✗</span><span class="chip">nanochat (L1)</span>
+        <span class="verdict no">跨层错位 —— 一个讲车,一个讲发动机铸造</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIME PLAN -->
+  <section>
+    <div class="sec-head">
+      <div class="k">Time Budget · 时间分配</div>
+      <h2>钱(时间)往哪花,一眼看清</h2>
+      <div class="d">如果一周有 10 小时学习时间,大致这么切。注意 Layer 2 一家独大,这不是巧合,是你的目标决定的。</div>
+    </div>
+
+    <div class="effortbar" aria-label="时间分配条">
+      <div class="eb l2">LAYER 2 · 55%<small>Agent / harness</small></div>
+      <div class="eb l3">L3 · 28%<small>交付变现</small></div>
+      <div class="eb l1">L1 · 17%<small>背景</small></div>
+    </div>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="pn">0</div>
+        <div class="pcard">
+          <div class="ph"><h4>看见全貌</h4><span class="t">约 1 周</span></div>
+          <p>读 Agent 文章<b>通读一遍</b>(不求甚解)+ 亲手把那 <span class="res">20 行 Agent 循环</span>敲出来跑通,给它配三个工具(读文件 / 跑 shell / 抓网页)。目标只有一个:建立"<b>我已经在这层、它没那么神秘</b>"的认知。这是整张图的"micrograd 时刻"。</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="pn">1</div>
+        <div class="pcard">
+          <div class="ph"><h4>主攻 Layer 2</h4><span class="t">约 1 个月,占大头</span></div>
+          <p>三件事拧成一股:Agent 文章<b>逐节精读</b>当地图,跟着 <b>learn-claude-code 一章章手搓</b>(s01 那 20 行起步,一路到子 Agent、上下文压缩、任务隔离),每搓完一章就去 <b>Claude Code 里当场对照验证</b>(Skills 按需加载 / <span class="res">/compact</span> / <span class="res">/rewind</span> / 子 Agent / Hooks / CLAUDE.md)。再用这套原理<b>回头重审你写过的 skills</b>——手感当场升级成原理。OpenClaw 留作"见真实生产代码"的对照,不必通读。</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="pn">2</div>
+        <div class="pcard">
+          <div class="ph"><h4>穿插补 Layer 1 背景</h4><span class="t">并行 / 碎片时间</span></div>
+          <p>用碎片时间做:<span class="res">3B1B</span> 点火 → <span class="res">micrograd</span> 跑通 → 训练文章读一遍。<b>够用即止</b>,看懂"模型为什么会变强"就行,不钻后训练工程的深水区。这层是为了让你跟人聊起来不露怯,不是为了让你会训模型。</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="pn">3</div>
+        <div class="pcard">
+          <div class="ph"><h4>Layer 3 变现,持续做</h4><span class="t">贯穿全程</span></div>
+          <p>把<b>胖猴信奥工具 / publish</b> 这些已有资产,用 Layer 2 学到的 Agent 工程结构(工具设计 / 记忆 / 评测 / 安全)重做一版,升级成<b>作品集级别</b>。给它配上 FDE 面试能讲的术语和案例叙事。<b>这是把学习直接转成求职弹药的环节</b>,越早开始越好。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSETS + REFRAME -->
+  <section>
+    <div class="sec-head" style="padding-bottom:0">
+      <div class="k">Leverage · 你的杠杆</div>
+      <h2>你不是从零开始</h2>
+    </div>
+    <div class="twocol">
+      <div class="box assets">
+        <h4>你已有的领先(直接折算成进度)</h4>
+        <ul>
+          <li><b>Claude Code 重度用户</b> <span class="arrow">→</span> Layer 2 的实验室你天天在用</li>
+          <li><b>写过 cold-water-critic / khazix-writer / publish</b> <span class="arrow">→</span> 你已做过 Skill 工程(正是文章第 3–4 节)</li>
+          <li><b>对比过 Claude Code / OpenClaw / Hermes</b> <span class="arrow">→</span> Layer 2 的视野已经有了</li>
+          <li><b>10 年商业分析 / 运营</b> <span class="arrow">→</span> 后半截(激励设计 / 古德哈特)的稀缺资产</li>
+          <li><b>胖猴信奥项目</b> <span class="arrow">→</span> 现成的 Layer 3 练兵场 + 作品集种子</li>
+        </ul>
+      </div>
+      <div class="box reframe">
+        <h4>为什么"后半截"难,但你恰好装备齐全</h4>
+        <p>前半截(模型)难在<b>数学</b>,孩子可能比你快;后半截(harness)难在它是<b>经验系统</b>,答案永远"看情况"——没有标准答案,所以习惯了"AC / WA"二元世界的人会反胃。</p>
+        <p>但那正是你的主场:奖励黑客 = "<b>一旦指标变成考核目标,它就不再是好指标</b>";ORM 的毛病 = 只考结果,员工学会蒙对答案;harness 决定表现 = 同一个人放进顺畅 vs 混乱的组织,产出差几倍。</p>
+        <div class="punch">换一只眼睛看:你不是在学计算机科学,你是在<b style="color:var(--brass-bright);font-weight:500">给一个绝对服从字面、又特别会钻空子的下属设计激励制度</b>。这是你早就懂的古德哈特定律,换了个新战场而已。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPENDIX -->
+  <section class="appendix">
+    <div class="ap-head">
+      <div class="eyebrow">附录 · Appendix</div>
+      <h2>本轮对话全文</h2>
+      <p>这张地图生长自下面这段关于三篇 Tw93 文章的讨论。点击每条展开,可读到原始对话。</p>
+    </div>
+
+    <div class="prior-note">
+      <b>关于范围:</b>本附录收录的是<b>本轮(三篇 Tw93 文章 / 分层学习)</b>的对话全文。更早那段关于《什么是数学》→《编码》→ 构建 AI/LLM 共读计划的对话,已完整收录在<b>第一张地图(reading-map.html)</b>的附录里,这里不再重复。<br>
+      <span class="ts">前序对话目录(见第一张地图):01 什么是数学 · 02 门槛 · 03 组织方式与科研版图 · 04 启发孩子兴趣 · 05 CS 版的对位书 · 06 展开《编码》· 07 构建 LLM 的书/教程 · 08 AI 路径共读计划 · 09 共读地图成稿</span>
+    </div>
+
+    <div class="ap-controls">
+      <button id="toggleAll" type="button">▸ 全部展开</button>
+    </div>
+
+    <!-- Q10 -->
+    <details class="qa">
+      <summary><span class="num">10</span><span class="q-txt">tw93 的《大模型训练》文章讲得对么?另外只看理论很枯燥,是不是结合之前"自己构建 LLM"的过程才更好理解?</span><span class="chev">▶</span></summary>
+      <div class="answer">
+        <h5>一、它讲得对吗 —— 基本都对,是真懂的人写的</h5>
+        <p>逐条对了一遍,准确度很高,且看得出作者真读了论文(文末 Further Reading 与正文吻合)。几个能验证的关键点:</p>
+        <p>InstructGPT 例子——一个经对齐微调的 <b>1.3B</b> 模型在人类偏好评测里击败 <b>175B</b> 的 GPT-3——出自原论文,是"后训练改写用户感知"的经典证据。Chinchilla 那段也对:8B 按最优点约该训 200B token,Llama 3 8B 实际训了 15T(约 75 倍),是故意"过度训练"换推理效率。DeepSeek-V3 的数字(约 278.8 万 H800 GPU 小时、14.8T token、FP8、全程无不可恢复 loss 突刺)与官方报告吻合。R1 四阶段、GRPO 相比 PPO 省价值网络、ORM/PRM、Constitutional AI 两阶段,都站得住。</p>
+        <p>三点冷水:① 核心论点"拉开差距的已不是预训练本身"<b>方向对但赶时髦</b>,前提是底子够好,文章自己也承认"预训练是地基";② 最新最炫的结论(Meta-Harness 6×、Kimi PARL、Cursor Composer 2)是 2026 预印本/博客,是<b>前沿声索不是定论</b>,且高度依赖特定基准;③ 它本质是<b>综述/地图</b>,挂在少数公开得最透的来源上,是"一种讲法"。</p>
+        <h5>二、要不要结合"自己构建"—— 要,但有个关键反转</h5>
+        <p>枯燥的真正原因不是缺动手,而是<b>这篇文章和构建路径讲的不是同一层</b>。micrograd → nanoGPT → Raschka 几乎全在讲<b>前半截</b>(架构、注意力、反向传播、预训练),也就是文章开篇就划掉的"只是地基"。而文章 90% 在讲<b>后半截</b>(数据配方、MoE、后训练、eval/reward、Agent、harness、蒸馏),这些 nanoGPT 里一行都没有。</p>
+        <p>所以:造完 nanoGPT,文章前三节会点亮;但主线(后训练、GRPO、奖励、Agent)你读完还是悬空的。补这个缺口的桥梁是 Karpathy 的 <code>nanochat</code>(2025-10):他自己说"nanoGPT 只覆盖预训练,nanochat 是从零的全栈 ChatGPT 流水线",一份脚本跑完 tokenizer → 预训练 → midtraining → SFT → 可选 RL(<em>简化版 GRPO</em>)→ 评测 → serving。<b>几乎就是这篇文章那条流水线的可动手玩具版。</b></p>
+        <table>
+          <tr><th>文章讲的层</th><th>配套动手</th></tr>
+          <tr><td>注意力 / 架构 / 预训练(前 3 节)</td><td>micrograd → nanoGPT</td></tr>
+          <tr><td>tokenizer、SFT、RL(GRPO)、完整流水线</td><td><b>nanochat</b></td></tr>
+          <tr><td>工业级完整复现</td><td>Raschka《Build a LLM from Scratch》</td></tr>
+        </table>
+        <p>两个判断:① 这篇文章在你体系里的角色,<b>等同于《普林斯顿数学指南》之于《什么是数学》</b>——是地图,负责"有什么、怎么连",不负责点火,所以"读着枯燥"是它的本分。② 对孩子要分层:前半截(nanoGPT)他够得着;后半截(RLHF、Agent)是给你自己或他很久以后的事,别现在就往 GRPO 上推。</p>
+      </div>
+    </details>
+
+    <!-- Q11 -->
+    <details class="qa">
+      <summary><span class="num">11</span><span class="q-txt">为什么后半截孩子更难理解?其实对我来说也挺难。</span><span class="chev">▶</span></summary>
+      <div class="answer">
+        <p>你和孩子卡的地方不同,但根源是同一个:<b>前半截和后半截是两种不同性质的知识。</b></p>
+        <p>前半截(架构、反向传播、预训练)本质是<b>数学和算法</b>:确定性、可推导、自包含,给定输入有唯一且可证明的输出,是一个能整个装进脑子的<b>静止对象</b>。后半截是<b>经验工程</b>:RLHF 为什么这么设计、配方几比几,没有证明,只有"试了这样更好",结论是<b>偶然为真</b>(对这个模型、这个基准、这一年为真),属于工程和实验科学。</p>
+        <h5>为什么对孩子尤其难</h5>
+        <p>他整个信奥训练都泡在前半截那种模式里——确定、可证、有标准答案。他大脑里"理解一个东西"的定义就是"能推出来、能追踪每一步"。后半截没有"每一步"可追,要求的是另一种他还没长出来的能力:<b>对一个混乱的、充满权衡、答案永远是"看情况"的经验系统进行推理</b>。对习惯"AC / WA"二元世界的孩子,这几乎反胃。不是笨,是还没装这个挡位。</p>
+        <h5>为什么对所有人(包括你)都难</h5>
+        <p>① 后半截是<b>带反馈回路的系统,不是对象</b>:模型→打分→塑造下一版→模型又变→打分看到的也变。最要命的现象(奖励黑客、模式崩溃、对齐造假)都不是单个零件的属性,而是循环<em>涌现</em>出来的。人脑天生不擅长推理反馈回路和涌现。② 后半截<b>没有可视化的实物锚点</b>:继电器、逻辑门能画出来,"奖励过度优化"画成什么?只能在纯抽象里悬空操作。③ 你得用<b>对抗性的眼光去模拟一个会作弊的优化器</b>:"我奖励 X,模型就找通往 X 的最懒的路,包括歪门邪道"——这个思维姿势成年人也会滑。</p>
+        <h5>给你的专属视角转换(今天最有用的一句)</h5>
+        <p>你觉得后半截难,很可能是在用<b>读前半截的方式</b>读它(追踪机制的 CS 模式)。但后半截的本质根本不是计算机科学——它是<b>激励设计、组织管理、古德哈特定律</b>,而这些恰恰是你十年商业运营的主场。</p>
+        <p>"奖励黑客" = "一旦一个指标变成考核目标,它就不再是好指标";"只看最终结果会教模型走捷径"(ORM)= 只考结果不看过程,员工学会蒙对答案;"PRM 给每步打分" = 你盯过程、盯方法论;"harness 决定表现" = 同一个人放进混乱 vs 顺畅的组织,产出差好几倍。</p>
+        <p>所以这半边对<b>你</b>可能比对孩子更容易,前半边正好相反。一句话收尾——前半截回答"<b>一个大脑是怎么算数的</b>",有标准答案;后半截回答"<b>怎么带一个人,才能让他真心把活干好、还不糊弄你</b>",从古至今没有标准答案。难,是它本来就难,不是你不行。</p>
+      </div>
+    </details>
+
+    <!-- Q12 -->
+    <details class="qa">
+      <summary><span class="num">12</span><span class="q-txt">tw93 的《Agent 原理》讲得咋样?好像可以配合 nanochat 做动手?还是有更好的配套?</span><span class="chev">▶</span></summary>
+      <div class="answer">
+        <h5>一、文章本身 —— 写得很好,比训练那篇更"硬"</h5>
+        <p>更硬是因为它每个原则都挂着<b>可运行的代码</b>,你能自己跑、能证伪。开篇就拆:Agent Loop 核心本质上<b>不到 20 行代码</b>——一个 while 循环,模型返回 tool_use 就执行工具塞回去接着循环,返回纯文本就结束。这个判断是灵魂。</p>
+        <p>对了一遍内容准确度很高:Workflow vs Agent 的界线(控制权在谁手里)、五种控制模式、Context Rot、KV 缓存要求前缀精确匹配(命中后续读取最高省 90%)、ACI 工具设计三代、Pass@k(测能力)vs Pass^k(测回归)、grader 三类、source/sink 分离防注入——全部对得上工程共识,引用真实。"出问题先查工具定义""评测坏掉时调 Agent 越调越糊涂"这种话是踩过坑才写得出的。</p>
+        <p>两点冷水:① 它<b>偏向一套特定风格</b>(文件系统当上下文、Markdown 记忆、JSONL 协议、OpenClaw 一路),写得有点像唯一正解,其实别的架构也成立;② 精确数字(73%→53% 等)多来自作者/引用方测试,当方向性证据看,别当普适常数。</p>
+        <h5>二、关键反转 —— 它不该配 nanochat,这是层级错位</h5>
+        <p>nanochat 是<b>造引擎</b>(从文本训出权重,要 GPU、训练、数学),终点是"得到一个能对话的模型"。而 Agent 文章的<b>起点</b>就假设你已有训练好的模型,在它<b>外面</b>盖系统——那 20 行循环第一行就是 <code>client.messages.create(...)</code> 直接调 API。它通篇要的是<b>软件工程,不要 GPU、不要训练、不要数学</b>。</p>
+        <p>拿 nanochat 配这篇,等于"学完整车调校,去配发动机铸造手册"——相邻但接不上。它真正配的是<b>上一篇《LLM 训练》</b>:那篇结尾在讲 harness 优化(模型外面那层程序),这篇就是把那个 harness 层<b>整个摊开讲透</b>。两篇 Tw93 才是互补的一对。</p>
+        <h5>三、该配什么动手 —— 比 nanochat 简单一万倍</h5>
+        <p><b>1. 先敲那 20 行循环</b>(Agent 版的 micrograd)。给它配三个工具,一个 API key,你就有了会自己用工具干活的 Agent;后面所有复杂机制都是在这个核心外面叠加。对孩子也极友好:本质就是 while 循环 + 函数分发,纯信奥舒适区,立刻能玩。</p>
+        <p><b>2. 你最好的实验室是天天在用的 Claude Code。</b>这篇几乎就是 Claude Code 的内部原理说明书:Skills 按需加载、上下文分层、/rewind、/compact、子 Agent、CLAUDE.md、Hooks——每个概念都能当场观察实验。而且你早在做了:你写的那些 skill、那个 "何时用/何时不用" 写法,<em>就是文章第 3、4 节</em>。读它的真正价值,是把你的手感升级成原理。</p>
+        <p><b>3. 再深就是 OpenClaw</b>(文章第 10 节整章拆的参考实现,你之前还对比过)。读一节 → 找到对应源码 → 改一改看效果。</p>
+        <h5>最后:跟你转型方向直接相关</h5>
+        <p>三层:模型层(micrograd→nanoGPT→nanochat→Raschka,地图=训练文章)/ harness-Agent 层(20 行→Claude Code→OpenClaw,地图=Agent 文章)。而你瞄准的 <b>FDE,吃饭家伙正是第二层</b>。模型训练对 FDE 是"懂原理即可"的背景;Agent 文章里的东西(harness、上下文工程、工具/ACI、评测)就是这岗位每天干的活。时间有限的话,这篇值得花的功夫应明显多于上一篇——上一篇让你"看懂模型为什么变强",这一篇让你"自己能把模型变好用",后者才是你要卖的能力。</p>
+      </div>
+    </details>
+
+    <!-- Q13 -->
+    <details class="qa">
+      <summary><span class="num">13</span><span class="q-txt">大概理解了,做一个给我学习和时间的指引地图,以单个 html 展示,并附上本轮聊天全文作为附录。</span><span class="chev">▶</span></summary>
+      <div class="answer">
+        <p>→ 即你正在看的这份《学习与时间指引地图》。核心是把三篇 Tw93 文章和各自的动手项目,按 FDE 目标分成三层并重新分配时间:Layer 2(harness/Agent)是主战场占大头,Layer 3(交付变现)持续做,Layer 1(模型)作轻投入的背景;并给出"理论只在同层配动手"的接线规则、分阶段时间计划,以及你已有资产的折算。本附录即本轮对话全文。</p>
+      </div>
+    </details>
+
+  </section>
+
+  <footer>
+    <p>学习与时间指引地图 · 个人版　|　三层之上,把时间投在离工作最近的那层</p>
+    <p>Tw93《大模型训练》·《Agent》　|　nanochat · 20 行循环 · learn-claude-code · Claude Code · OpenClaw　|　目标:applied / product / FDE</p>
+  </footer>
+
+</div>
+
+<script>
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var layers = document.querySelectorAll('.layer');
+    if(reduce || !('IntersectionObserver' in window)){
+      layers.forEach(function(l){l.classList.add('in')});
+    } else {
+      var io = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+      },{threshold:0.12});
+      layers.forEach(function(l){io.observe(l)});
+    }
+  })();
+  (function(){
+    var btn=document.getElementById('toggleAll');
+    var items=document.querySelectorAll('details.qa');
+    var open=false;
+    btn.addEventListener('click',function(){
+      open=!open;
+      items.forEach(function(d){d.open=open});
+      btn.textContent=open?'▾ 全部收起':'▸ 全部展开';
+    });
+  })();
+</script>
+</body>
+</html>
