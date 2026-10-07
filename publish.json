@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "catalog": "https://zcxxcz.github.io/zhuanpan/catalog.json",
+  "records": [
+    {
+      "id": "spinner",
+      "title": "转盘生成器",
+      "type": "工具",
+      "summary": "自定义选项、权重和主题，用一个转盘做决定，也能导出分享。",
+      "tags": [
+        "家庭游戏"
+      ],
+      "url": "https://zcxxcz.github.io/zhuanpan/",
+      "updated": "2026-10-07",
+      "featured": true,
+      "textPaths": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "spy",
+      "title": "谁是卧底",
+      "type": "游戏",
+      "summary": "一部手机轮流传阅，支持自定义词库、白板角色和投票。",
+      "tags": [
+        "家庭游戏"
+      ],
+      "url": "https://zcxxcz.github.io/zhuanpan/spy/",
+      "updated": "2026-10-07",
+      "featured": true,
+      "textPaths": [
+        "spy/index.html"
+      ]
+    }
+  ]
+}
