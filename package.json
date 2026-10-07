@@ -4,7 +4,8 @@
   "description": "帮选择困难症患者生成随机做决定的转盘，主题和选项均可自定义",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "node scripts/publish.mjs"
   },
   "repository": {
     "type": "git",
